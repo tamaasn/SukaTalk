@@ -1,6 +1,17 @@
 # SukaTalk
 SukaTalk adalah sebuah website chat yang dikembangkan oleh mahasiswa UIN Sunan Kalijaga Yogyakarta
 
+# Fitur
+1. Mengirim pesan melalui PIN yang dimiliki
+2. Chat yang terenkripsi
+dst
+
+# Teknologi yang Digunakan
+1. Python sebagai bahasa pemrograman
+2. Django sebagai web framework
+3. Pusher sebagai protokol pengirim dan penerima pesan
+4. SQLite sebagai database
+
 # Anggota Kelompok
 1. Arham Athillah (23106050008) sebagai designer
 2. Muhammad Akmal Sani Pratama (23106050036) sebagai developer
