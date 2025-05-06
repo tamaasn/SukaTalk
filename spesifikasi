@@ -1,9 +1,56 @@
 Suka talk
-•	Auntentication
-1.	Login
-Halaman untuk mengautentikasi pengguna. Pengguna yang sudah terdaftar harus login dulu untuk masuk ke main page. Terdapat dua kondisi yang harus dipenuhi yaitu email dan password harus benar. Jika pengguna belum terdaftar maka harus registrasi dulu
-Sepsifikasi utama : form card yang berisi kolom email dan password, tombol submit, registrasi.
-Spesifikasi optional remember me
-2.	Registrasi
-Halaman untuk mendaftarkan akun. User mengirimkan form berisi data diri (priority : email dan password). Data diri yang dikirim akan diterima server dan server otomatis mengirimkan token . token ini digunakan untuk menautkan user ke teman atau grup.
-Spesisfikasi yang dibutuhkan : form card
+1.  Authentication
+a.  Login
++ Tujuan: Mengautentikasi pengguna yang sudah terdaftar.
++ Fungsi Utama:
+•	Form dengan input:
+Email dan Password
+•	Tombol:
+Login dan Link ke halaman Registrasi
+•	Validasi:
+Email & password harus sesuai. Jika salah, tampilkan pesan error.
++Spesifikasi Tambahan (Opsional):
+•	Checkbox “Remember Me” untuk menyimpan sesi login.
+b.	Registrasi
++Tujuan: Mendaftarkan pengguna baru ke sistem.
++Fungsi Utama:
+•	Form dengan input:
+Email, Password dan Tombol Submit.
++ Proses:
+Setelah registrasi sukses, server mengirimkan token autentikasi. Token digunakan untuk menghubungkan user dengan teman/grup.
+Spesifikasi UI:
+Form dalam bentuk card, clean dan fokus.
+
+2.	Main Page (Setelah Login)
+a.	Sidebar (Panel Kiri)
++ Fungsi: Navigasi utama aplikasi.
++	Ikon/Menu yang Ditampilkan:
+1.	Chat Log – Tautan ke daftar percakapan.
+2.	Profil – Menampilkan & mengedit username, foto profil.
+3.	Tambah Teman – Menambahkan kontak baru melalui email atau token.
+4.	Logout – Keluar dari akun secara aman.
++	Catatan:
+	Navigasi akan memengaruhi tampilan panel tengah (daftar chat) dan panel kanan (chat).
+b.	Daftar Chat / Kontak (Middle Panel)
++	Fungsi: Menampilkan semua percakapan terakhir.
++	Komponen:
+•	Daftar item kontak:
+	Nama teman
+	Foto profil
+	Ringkasan pesan terakhir (opsional)
+•	Klik pada salah satu item → membuka isi obrolan di panel kanan.
++	Spesifikasi Opsional:
+	Kolom pencarian untuk mencari nama teman/kontak.
+c.	Chat Page (Panel Kanan)
++	Fungsi: Menampilkan isi obrolan dengan teman secara real-time.
++	Komponen:
+•	Header:
+	Nama teman
+	Status (online/offline) [opsional]
+•	Area percakapan:
+	Bubble chat (sender & receiver)
+	Auto scroll ke bawah saat pesan baru masuk
+•	Input:
+	Kolom input teks
+	Tombol kirim
+
