@@ -1,0 +1,9 @@
+Suka talk
+•	Auntentication
+1.	Login
+Halaman untuk mengautentikasi pengguna. Pengguna yang sudah terdaftar harus login dulu untuk masuk ke main page. Terdapat dua kondisi yang harus dipenuhi yaitu email dan password harus benar. Jika pengguna belum terdaftar maka harus registrasi dulu
+Sepsifikasi utama : form card yang berisi kolom email dan password, tombol submit, registrasi.
+Spesifikasi optional remember me
+2.	Registrasi
+Halaman untuk mendaftarkan akun. User mengirimkan form berisi data diri (priority : email dan password). Data diri yang dikirim akan diterima server dan server otomatis mengirimkan token . token ini digunakan untuk menautkan user ke teman atau grup.
+Spesisfikasi yang dibutuhkan : form card
