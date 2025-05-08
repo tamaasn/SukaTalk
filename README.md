@@ -9,8 +9,9 @@ dst
 # Teknologi yang Digunakan
 1. Python sebagai bahasa pemrograman
 2. Django sebagai web framework
-3. Pusher sebagai protokol pengirim dan penerima pesan
-4. SQLite sebagai database
+3. Figma sebagai design web
+4. Pusher sebagai protokol pengirim dan penerima pesan
+5. SQLite sebagai database
 
 # Anggota Kelompok
 1. Arham Athillah (23106050008) sebagai designer
