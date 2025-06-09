@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  {% load static %}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Suka-Talks</title>
+  <link rel="stylesheet" href="{% static 'css/main.css' %}">
+  <script>
+    var csrftoken = '{{ csrf_token }}';
+  </script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script src="https://js.pusher.com/8.2/pusher.min.js"></script>
+  <script src="{% static 'scripts/ajax.js' %}"></script>
+  <style>
+  #woy{
+    display:flex;
+    flex-direction:column;
+    word-wrap: break-word;
+   }
+    .message{
+        min-width:150px;
+        max-width:250px;
+    }
+
+    .chat-body {
+      flex-grow: 1;
+      padding: 1rem;
+      background: url("{% static 'images/background.webp' %}") repeat;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+#chat-input {
+  display: none;
+  padding: 1rem;
+  background-color: white;
+  border-top: 1px solid #ccc;
+}
+
+#chat-input input {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  border: 1px solid #ccc;
+  margin-right: 1rem;
+}
+
+#chat-input button {
+  background-color: #7b55f5;
+  border: none;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1.2rem;
+}
+
+</style>
+</head>
+
+<body>
+<script>
+var current_channel;
+const pusher=new Pusher("71ff76d1f85308273295",{cluster: "ap1"});
+  // Modal toggle logic
+function show_add_friend(){
+    var friend = document.getElementById("addFriendModal");
+    if (friend.style.display != "flex"){
+        friend.style.display="flex";
+    }
+    else{
+        friend.style.display="none";
+    }
+    console.log(friend.style.display);
+}
+
+function change_channel(channel_id){
+    if (current_channel == channel_id){
+        console.log("same channel");
+        return;
+    }
+    pusher.unsubscribe(current_channel);
+    current_channel=channel_id;
+    document.getElementById("chat-input").style.display="flex";
+    document.getElementById("chat-header").style.display="flex";
+    connect();
+    console.log("HERE!");
+    get_chat(current_channel);
+    seen(current_channel);
+}
+
+function show_edit_profile(){
+    var profile = document.getElementById("editProfileModal");
+    if (profile.style.display != "flex"){
+        profile.style.display="flex";
+    }
+    else{
+        profile.style.display="none";
+    }
+    console.log(profile.style.display);
+}
+
+function home(){
+    document.getElementById("chat-input").style.display="none";
+    document.getElementById("chat-header").style.display="none";
+    document.getElementById("woy").innerHTML="";
+    pusher.unsubscribe(current_channel);
+    current_channel="EMPTY";
+}
+
+</script>
+
+  <div class="container">
+  <!-- Modal Add Friend -->
+  <div id="addFriendModal" class="modal">
+  <div class="modal-content">
+    <div class="icon" onclick="show_add_friend()"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x-icon lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></div>
+    <h3>Add Friend</h3>
+    <input type="text" placeholder="name" id="name"/>
+    <input type="text" placeholder="pin/token"id="pin"/>
+    <button type="button" class="modal-add" onclick="add_contact()">Add</button>
+  </div>
+  </div>
+
+  <div id="editProfileModal" class="modal">
+  <div class="modal-content profile-popup">
+      <div class="icon" onclick="show_edit_profile()" ><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x-icon lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></div>
+    <form method="POST" action="/update_profile/" enctype="multipart/form-data">
+        <img src="{% static  photo_profile %}" alt="Avatar" class="avatar" />
+        {% csrf_token %}
+        <input type="file" name="avatar" id="avatar">
+        <input class="chat-input" type="text" name="username" value="{{ username }}" style="width:200px">
+        <p>{{ email }}</p>
+        <p> {{ pin }} </p>
+        <input type="submit" class="add-friend-btn">
+        <a class="logout-button" href="/logout/">Log-out</a>
+    </form>
+  </div>
+</div>
+
+
+    <!-- Sidebar Vertical -->
+    <div class="sidebar">
+      <div class="icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-house-icon lucide-house" onclick="home()"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></div>
+      <div class="icon" onclick="show_add_friend()"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-plus-icon lucide-circle-plus"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg></div>
+      <div class="spacer"></div>
+      <div class="icon" onclick="show_edit_profile()"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-pen-icon lucide-user-pen"><path d="M11.5 15H7a4 4 0 0 0-4 4v2"/><path d="M21.378 16.626a1 1 0 0 0-3.004-3.004l-4.01 4.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z"/><circle cx="10" cy="7" r="4"/></svg></div>
+    </div>
+
+    <!-- Chat List -->
+    <div class="chat-list" id="chat-list">
+      <h2>Suka-Talks</h2>
+        <div class="chats" id="chats">
+        {% for i in contacts %}
+        <div class="chat-user" onclick="change_channel('{{ i.channel_id }}')">
+            <div>
+                <strong> {{ i.username }} </strong> <br>
+                <span> {{ i.email }} </span> <br>
+                {% if i.seen == 0 %}
+                    <i><b> {{ i.last_message }} (New) </b></i>
+                {% else %}
+                    <p> {{ i.last_message }} </p>
+                {% endif %}
+            </div>
+            <span class="chat-time">{{ i.last_timestamp }} </span>
+        </div>
+
+        {% endfor %}
+
+
+      </div>
+    </div>
+
+    <!-- Chat Area -->
+    <div class="chat-area" id="chat-area">
+<div class="chat-header" id="chat-header" style="display: none!important; align-items: center !important; justify-content: flex-start !important; padding: 10px;">
+
+  <img src="#" alt="Avatar" id="friend_avatar" style="width: 50px; height: 50px; border-radius: 50%;" />
+  <span style="color: white;" id="whoisthis">Home</span>
+</div>
+
+
+
+
+      <div class="chat-body" id="chat-body">
+        <div id="woy">
+        </div>
+      </div>
+      <div id="chat-input">
+        <input type="text" placeholder="Type a message" id="message" />
+        <button onclick="send_message()">send</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+
+
+  <script>
+    function notification(){
+        Pusher.logToConsole=true;
+        const channel=pusher.subscribe("allevents");
+        channel.bind("{{ event }}",function(data){
+            if (data['event'] == 1){
+                get_list_chat();
+            }
+            else{
+
+            }
+            switch(data['event']){
+                case 1: get_list_chat();break;
+                case 2: document.getElementById("whoisthis").innerHTML=data['username'];document.getElementById("friend_avatar").src=data['photo_profile'];break;
+                default: break;
+            }
+        });
+    }
+
+    function connect(){
+        Pusher.logToConsole=true;
+        const channel=pusher.subscribe(current_channel);
+        channel.bind("send",function(data){
+        if (data["event"] == "{{ event }}"){
+            document.getElementById("woy").innerHTML += "<div class='message right'>" + data["message"] + "<span class='timestamp'>"+data["time"]+"</span></div>";
+        }
+        else{
+            document.getElementById("woy").innerHTML += "<div class='message left'>" + data["message"] + "<span class='timestamp'>"+data["time"]+"</span></div>";
+        }
+        var element = document.getElementById("chat-body");
+        element.scrollTop = element.scrollHeight;
+
+        });
+    }
+
+    function disconnect(){
+        pusher.disconnect();
+    }
+    notification();
+  </script>
+
+

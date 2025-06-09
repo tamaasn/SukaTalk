@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  {% load static %}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Suka-Talk Sign Up</title>
+  <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body>
+<script>
+function view(indicator){
+    if (!indicator){
+        document.getElementById("signup").style.display="none";
+        document.getElementById("signin").style.display="flex";
+        document.getElementById("indicator").value="signin";
+    }
+    else{
+        document.getElementById("signup").style.display="flex";
+        document.getElementById("signin").style.display="none";
+        document.getElementById("indicator").value="signup";
+    }
+    console.log("boo!");
+}
+</script>
+  <div class="container">
+    <div class="left">
+      <img src="{% static 'background.png' %}" alt="Phone Illustration" />
+    </div>
+    <div id="signup">
+    <h1> SukaTalk SignUp </h1>
+      <form method="POST" action="/account_handler/">
+        {% csrf_token %}
+        <input type="hidden" value="signup" id="indicator" name="indicator">
+        <input type="email" placeholder="email" name="email" required />
+        <input type="text" placeholder="username" name="username" required />
+        <input type="password" placeholder="password" name="password" required />
+        <button type="submit">Sign-Up</button>
+      </form>
+      <div class="signin-link">
+        Already have account ? <a href="#" onclick="return view(false)">Sign-in</a>
+      </div>
+    </div>
+
+      <div id="signin">
+      <h1> SukaTalk Login </h1>
+        <form method="POST" action="/account_handler/">
+            {% csrf_token %}
+            <input type="hidden" value="signin" id="indicator" name="indicator">
+            <input type="email" placeholder="email" name="email" required>
+            <input type="password" placeholder="password" name="password" required>
+            <button type="submit">SignIn</button>
+        </form>
+
+        <div class="signin-link">
+            Havent created account yet? <a href="#" onclick="return view(true)">Sign-Up</a>
+        </div>
+    </div>
+  </div>
+
+</body>
+</html>
+

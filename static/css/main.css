@@ -1,0 +1,239 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Poppins', sans-serif;
+}
+
+body {
+  height: 100vh;
+  display: flex;
+}
+.add-friend-btn {
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  background-color: #5d3dc0;
+  color: white;
+  border: none;
+  border-radius: 15px;
+  font-weight: bold;
+  width: 100%;
+  cursor: pointer;
+}
+
+/* Modal */
+
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 999;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  justify-content: center;
+  align-items: center;
+}
+
+/* Modal Content */
+.profile-popup {
+  background-color: #7e5bef;
+  color: white;
+  border-radius: 15px;
+  padding: 2rem;
+  width: 260px;
+  text-align: center;
+  position: relative;
+}
+
+.avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #ccc;
+  margin-bottom: 1rem;
+  display: block; /* ensures it's treated as a block element */
+  margin-left: auto;
+  margin-right: auto;
+}
+
+
+/* Edit Icon */
+.edit-icon {
+  font-size: 0.9rem;
+  cursor: pointer;
+  margin-left: 5px;
+}
+
+/* Logout Button */
+.logout-button {
+  background-color: #e74c3c;
+  border: none;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 10px;
+  margin-top: 1.5rem;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.logout-button:hover {
+  background-color: #c0392b;
+}
+
+.modal-content {
+  background-color: #8c65f7;
+  padding: 2rem;
+  border-radius: 15px;
+  display: flex;
+  flex-direction: column;
+  min-width: 250px;
+  max-width: 300px;
+}
+
+.modal-content h3 {
+  color: white;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.modal-content input {
+  padding: 0.5rem;
+  margin-bottom: 1rem;
+  border-radius: 10px;
+  border: none;
+  font-size: 1rem;
+}
+
+.modal-add {
+  padding: 0.5rem;
+  background-color: #4c2cad;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+
+.container {
+  display: flex;
+  width: 100%;
+  height: 100vh;
+}
+
+.sidebar {
+  background-color: #7d32a8;
+  width: 50px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem 0;
+  color: white;
+}
+
+.sidebar .icon {
+  margin: 1rem 0;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+.icon{
+  align-items: left;
+  display: flex;
+  max-width: 25px;
+}
+.icon:hover{
+cursor: pointer;
+background-color: red;
+}
+
+.sidebar .spacer {
+  flex-grow: 1;
+}
+
+.chat-list {
+  background-color: #8c65f7;
+  width: 450px;
+  padding: 1rem;
+  color: white;
+  overflow-y: scroll;
+}
+
+
+.chat-list h2 {
+  margin-bottom: 1rem;
+}
+
+.chat-user {
+  background-color: #7b55f5;
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+  border-radius: 10px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+}
+.chat-user:hover{
+cursor:pointer;
+}
+
+.chat-time {
+  font-size: 0.7rem;
+  align-self: flex-start;
+  opacity: 0.7;
+}
+
+.logout {
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  border: none;
+  background-color: #fff;
+  color: #7b55f5;
+  border-radius: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  width: 100%;
+}
+
+.chat-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: #f3f3f3;
+}
+
+.chat-header {
+  background-color: #5d3dc0;
+  color: white;
+  padding: 1rem;
+  font-weight: bold;
+}
+
+.message {
+  max-width: 60%;
+  padding: 0.8rem 1rem 1.5rem 1rem;
+  border-radius: 15px;
+  font-size: 1rem;
+  position: relative;
+  margin-bottom: 1rem;
+  word-wrap: break-word;
+}
+
+.message.left {
+  background-color: white;
+  align-self: flex-start;
+}
+
+.message.right {
+  background-color: #7b55f5;
+  color: white;
+  align-self: flex-end;
+}
+
+.timestamp {
+  position: absolute;
+  font-size: 0.7rem;
+  bottom: 5px;
+  right: 10px;
+  opacity: 0.6;
+}
+
