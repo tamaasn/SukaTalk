@@ -28,5 +28,7 @@ urlpatterns = [
     path('get_chat/',views.get_chat),
     path('get_list_chat/',views.get_contact_lists),
     path('seen_message/',views.seen_message),
-    path('update_profile/',views.update_profile)
+    path('update_profile/',views.update_profile),
+    path('delete_chat/',views.delete_chat),
+    path('delete_message/',views.delete_message)
 ]

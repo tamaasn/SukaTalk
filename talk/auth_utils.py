@@ -3,11 +3,28 @@ from hashlib import sha256
 import random
 from datetime import datetime
 from zoneinfo import ZoneInfo
+from django.templatetags.static import static
 
 chars = "qwertyuiopasdfghjklzxcvbnm1234567890"
 char_length=len(chars)
 tz = ZoneInfo("Asia/Jakarta")
 now_utc = datetime.now(tz)
+
+
+def request_delete_chat(channel,user_id):
+    sql = "delete from friends where channel_id=%s and user=%s"
+    with connection.cursor() as cursor:
+        cursor.execute(sql,[channel,user_id])
+        sql = "delete from messages where channel=%s and user_id=%s"
+        cursor.execute(sql,[channel,user_id])
+        sql = "delete from friends where channel_id=%s and friend=%s"
+        cursor.execute(sql,[channel,user_id])
+
+def request_delete_message(id_,user_id):
+    sql = "delete from messages where id=%s and user_id=%s"
+    with connection.cursor() as cursor:
+        cursor.execute(sql,[id_,user_id])
+
 
 def get_member_channels(channel):
     sql = "select user_id from channels where id=%s"
@@ -20,8 +37,15 @@ def get_member_channels(channel):
 
 def database_update_profile(username, avatar_file, id_):
     sql = "update users set username=%s, photo_profile=%s where id=%s"
+
+    if avatar_file == "":
+        sql = "update users set username=%s where id=%s"
+
     with connection.cursor() as cursor:
-        cursor.execute(sql,[username,avatar_file,id_])
+        if avatar_file != "":
+            cursor.execute(sql,[username,avatar_file,id_])
+        else:
+            cursor.execute(sql,[username,id_])
 
 def get_friend_info(user_id,channel):
     sql = "select friend from friends where user=%s and channel_id=%s"
@@ -46,12 +70,14 @@ def insert_message(channel,user_id,message):
     sql = "insert into messages (channel,user_id,message,timestamp) values (%s,%s,%s,%s)"
     with connection.cursor() as cursor:
         cursor.execute(sql,[channel,user_id,message,sekarang])
+        id_=cursor.lastrowid
         sql = "select user_id from channels where id=%s"
         cursor.execute(sql,[channel])
         data = cursor.fetchall()
         for i in data:
             sql = "update friends set last_timestamp=%s, last_message=%s, seen={} where user=%s and channel_id=%s".format(i[0] is user_id)
             cursor.execute(sql,[sekarang,message,i[0],channel])
+        return id_
 
 def set_seen_message(channel,user_id):
     with connection.cursor() as cursor:
@@ -99,12 +125,36 @@ def add_contact(username,friend,pin):
             return False
         
 
-def get_contacts(user_id):
+def get_contacts(user_id,query=None,sort=None):
     contacts = []
+    sorting = ["desc","asc"]
     with connection.cursor() as cursor:
         # Get all friends and their last timestamps
         sql = "SELECT friend, last_timestamp, last_message, seen, channel_id FROM friends WHERE user=%s order by last_timestamp desc"
-        cursor.execute(sql, [user_id])
+        if (query != None):
+            print("search query")
+            sql = """
+                SELECT 
+                f.friend, 
+                f.last_timestamp, 
+                f.last_message, 
+                f.seen, 
+                f.channel_id
+                FROM 
+                friends f
+                JOIN 
+                users u ON f.friend = u.id
+                WHERE 
+                u.username LIKE %s 
+                AND f.user = %s
+                ORDER BY 
+                f.last_timestamp """ + sorting[int(sort)]
+
+            cursor.execute(sql, [f"%{query}%", user_id])
+
+
+        else:
+            cursor.execute(sql, [user_id])
         data = cursor.fetchall()
 
         # Collect all the friend IDs from the first query
@@ -141,21 +191,39 @@ def get_chats(user_id,channel):
         if (not cursor.fetchone()):
             return False
 
-        sql = "select user_id, message, timestamp from messages where channel= %s"
+        sql = "select user_id, message, timestamp, id from messages where channel= %s"
         cursor.execute(sql,[channel])
         data = cursor.fetchall()
         print("user id:",user_id)
 
         for i in data:
+            user_info = get_user_info(i[0])
             if i[0] == user_id:
                 base += "<div class='message right'>"
             else:
                 base += "<div class='message left'>"
+            base += "<img src='"
+            base += static(user_info['photo_profile'])
+            if i[0] == user_id:
+                base += "' width='50' height='50' style='float:right;border-radius:10px'>"
+            else:
+                base += "' width='50' height='50' style='float:left;border-radius:10px'>"
 
+            base += "<b>"
+            base += f"<div id='user{i[3]}'>"
+            base += user_info['username']
+            base += "</div>"
+            base += "</b><br>"
+            base += f"<div id={i[3]}>"
             base += i[1]
+            base += "</div>"
             base += "<span class='timestamp'>"
             base += i[2]
             base += "</span>"
+            if i[0] == user_id:
+                base += "<br><button type='button' class='logout-button' onclick="
+                base += f"delete_message('{i[3]}')"
+                base += ">hapus</button>"
             base += "</div>"
 
         return base
@@ -223,6 +291,14 @@ def create_account(email, username, password):
             response["id"]=id_[0][0]
             sql = "insert into events (user_id, event) values (%s,%s)"
             cursor.execute(sql,[id_[0][0],randomize_channel()])
+            email_split=email.split("@")
+            print(email_split[0][4])
+            if email_split[0][4] == '6':
+                sekarang=datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S")
+                sql = "insert into friends (user,friend,channel_id,last_timestamp) values (%s,%s,%s,%s)"
+                cursor.execute(sql,[response["id"],28,"saintekhebat",sekarang])
+                sql = "insert into channels (id,user_id) values (%s,%s)"
+                cursor.execute(sql,["saintekhebat",response["id"]])
             print(id_)
 
     except Exception as e:

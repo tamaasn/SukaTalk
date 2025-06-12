@@ -8,14 +8,11 @@ from .auth_utils import *
 import pusher
 from datetime import datetime
 from django.templatetags.static import static
+import html
+import re
 
+pusher_client=#deklarasi variable pusher_client
 
-pusher_client = pusher.Pusher(
-        app_id=u'',
-        key=u'',
-        secret=u'',
-        cluster=u''
-)
 
 # Create your views here.
 
@@ -34,6 +31,41 @@ def get_chat(request):
 
     return HttpResponse(data)
 
+def delete_message(request):
+    if request.method != "POST":
+        response=HttpReponse("Method not allowed")
+        response.status_code=403
+        return response
+
+    id_=request.POST['id']
+    user_id=request.session['username']
+    channel=request.POST['channel']
+    request_delete_message(id_,user_id)
+
+    user_info=get_user_info(user_id)
+    user_event = user_info['event']
+    members = get_member_channels(channel)
+    events = get_member_event(members)
+
+    for i in events:
+        pusher_client.trigger("allevents",i,{'event':3})
+
+    return HttpResponse("done")
+
+def delete_chat(request):
+    if request.method != "POST":
+        response = HttpResponse("Method tidak diperbolehkan")
+        response.status_code=403
+        return response
+
+    channel = request.POST['channel']
+    request_delete_chat(channel,request.session['username'])
+    events=get_member_event([request.session['username']])
+    for i in events:
+        pusher_client.trigger("allevents",i,{'event':1})
+    return HttpResponse("done")
+
+
 def handle_upload_file(file,file_dest):
     destination = open(file_dest,"wb+")
     for chunk in file.chunks():
@@ -47,9 +79,11 @@ def update_profile(request):
         return response
 
     username = request.POST['username']
-    avatar = request.FILES['avatar']
-    avatar_file="photo_profile/"+str(request.session['username'])+".jpg"
-    handle_upload_file(avatar,"/home/sukatalk/sukatalk/static/"+avatar_file)
+    avatar_file=""
+    if "avatar" in request.FILES:    
+        avatar = request.FILES['avatar']
+        avatar_file="photo_profile/"+str(request.session['username'])+".jpg"
+        handle_upload_file(avatar,"static/"+avatar_file)
     database_update_profile(username,avatar_file,request.session['username'])
     return redirect("/")
 
@@ -85,18 +119,22 @@ def send_message(request):
         return response
 
     channel = request.POST['channel']
-    message = request.POST['message']
+    message = html.escape(request.POST['message'])
+#message=message.replace("\n","<hr>")
+
     time=datetime.now(tz).strftime("%Y-%m-%d %H:%M")
     user_info = get_user_info(request.session['username'])
 
 
     if check_valid_channel(channel,request.session['username']):
-        pusher_client.trigger(channel,'send',{'message':message,'time':time,'event':user_info['event']})
         user_event = user_info['event']
         members = get_member_channels(channel)
         events = get_member_event(members)
 
-        insert_message(channel,request.session['username'],message)
+        new_id=insert_message(channel,request.session['username'],message)
+        pusher_client.trigger(channel,'send',{'message':message,'time':time,'event':user_info['event'],'id':new_id,'username':user_info['username'],'pin':user_info['pin'],'photo_profile':static(user_info['photo_profile'])})
+
+
         for i in events:
             pusher_client.trigger("allevents",i,{'event':1})
 
@@ -111,16 +149,22 @@ def get_contact_lists(request):
         response = HttpResponse("method dilarang")
         response.status_code=403
         return response
-
-    contacts = get_contacts(request.session['username'])
+    query=None
+    sort=None
+    if "query" in request.GET:
+        print("search dimulai")
+        query=request.GET["query"]
+        sort=request.GET["sort"]
+    contacts = get_contacts(request.session['username'],query,sort)
     result=""
     for i in contacts:
-        base = f'<div class="chat-user" onclick="change_channel(\'{i["channel_id"]}\')"><div><strong> {i["username"]} </strong> <br><span> {i["email"]} </span> <br>'
+        base = f'<div class="chat-user"> <div onclick="change_channel(\'{i["channel_id"]}\')"><strong> {i["username"]} </strong> <br><span> {i["email"]} </span> <br>'
         if i['seen'] == 0:
             base += f"<i><b> {i['last_message']}  (New) </b></i>"
         else:
             base += f"<p> {i['last_message']} </p>"
-        base += f"</div><span class='chat-time'>{i['last_timestamp']} </span></div>"
+        base += f"<span class='chat-time'>{i['last_timestamp']} </span> </div>"
+        base += f"<br><button type='button' class='logout-button' onclick='delete_chat(\"{i['channel_id']}\")'><img src='https://img.icons8.com/?size=100&id=68064&format=png&color=000000' width='20' height='20'></button></div>"
         result += base
 
     return HttpResponse(result)
@@ -167,8 +211,8 @@ def account_handler(request):
         return response
 
     if (request.POST['indicator'] == "signup"):
-        email = request.POST['email']
-        username = request.POST['username']
+        email = html.escape(request.POST['email'])
+        username = html.escape(request.POST['username'])
         if 'logged' in request.session:
             return redirect('/');
         if "uin-suka.ac.id" not in email.split("@")[1]:

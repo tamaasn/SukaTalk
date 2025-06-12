@@ -1,3 +1,4 @@
+var current_reply="";
 function get_chat(channel){
   $.ajax({
     type: "POST",
@@ -12,7 +13,37 @@ function get_chat(channel){
 
 }
 
+function delete_chat(channel){
+  $.ajax({
+type: "POST",
+url: "/delete_chat/",
+data:{
+channel:channel,
+"csrfmiddlewaretoken":csrftoken
+},
+success: function(data){
+}});
+}
+
 function get_list_chat(){
+  if (search){
+    $.ajax({
+    type: "GET",
+    url: "/get_list_chat/",
+    data:{
+      sort: document.getElementById("sort").value,
+      query: document.getElementById("search").value
+    },
+    success: function(data){
+      console.log(data);
+      document.getElementById("chats").innerHTML = data;
+    }
+    });
+    search=false;
+    console.log("here");
+    return;
+  }
+
   $.ajax({
     type: "GET",
     url: "/get_list_chat/",
@@ -39,8 +70,27 @@ function add_contact(){
   }})
 }
 
+function delete_message(id){
+  $.ajax({
+    type:"POST",
+    url:"/delete_message/",
+    data:{
+      id:id,
+      channel:current_channel,
+      "csrfmiddlewaretoken":csrftoken
+    },
+    success: function(data){
+    }});
+}
+
 function send_message(){
-  var message = document.getElementById("message").value;
+  var message;
+  if (current_reply != ""){
+    message = current_reply+"\n"+document.getElementById("message").value;
+  }
+  else{
+    message = document.getElementById("message").value;
+  }
   var time = new Date().toLocaleString();
   console.log("sent");
   $.ajax({
@@ -54,6 +104,9 @@ function send_message(){
     },
     success:function(data){
     }})
+  current_reply="";
+  document.getElementById("message").value="";
+  document.getElementById("message").placeholder="Type a message...";
 }
 
 function seen(id){

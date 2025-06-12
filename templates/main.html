@@ -56,6 +56,9 @@
   cursor: pointer;
   font-size: 1.2rem;
 }
+.reply{
+    color:gray;
+}
 
 </style>
 </head>
@@ -63,6 +66,7 @@
 <body>
 <script>
 var current_channel;
+var search=false;
 const pusher=new Pusher("71ff76d1f85308273295",{cluster: "ap1"});
   // Modal toggle logic
 function show_add_friend(){
@@ -151,20 +155,32 @@ function home(){
 
     <!-- Chat List -->
     <div class="chat-list" id="chat-list">
-      <h2>Suka-Talks</h2>
+      <h2>Suka-Talk</h2>
+        <p>Urutkan sesuai:</p>
+
+        <select name="hall" id="sort" style="border-radius:10px;padding:10px;background-color:white">
+            <option selected="selected" value="0">terlama</option>
+            <option value="1">terbaru</option>
+        </select>
+        <input type="text" id="search" style="border-radius:10px;font-size:15px;padding:5px" placeholder="cari kontak...">
+        <button type="button" class="add-friend-btn" onclick="search=true;get_list_chat()">Cari</button>
+
         <div class="chats" id="chats">
         {% for i in contacts %}
-        <div class="chat-user" onclick="change_channel('{{ i.channel_id }}')">
-            <div>
+        <div class="chat-user">
+            <div onclick="change_channel('{{ i.channel_id }}')">
                 <strong> {{ i.username }} </strong> <br>
                 <span> {{ i.email }} </span> <br>
                 {% if i.seen == 0 %}
-                    <i><b> {{ i.last_message }} (New) </b></i>
+                    <i><b> {{ i.last_message | safe }} (New) </b></i>
                 {% else %}
-                    <p> {{ i.last_message }} </p>
+                    <p> {{ i.last_message | safe }} </p>
                 {% endif %}
+                <span class="chat-time">{{ i.last_timestamp }} </span>
+
             </div>
-            <span class="chat-time">{{ i.last_timestamp }} </span>
+            <br>
+            <button type="button" class="logout-button" onclick="delete_chat('{{ i.channel_id }}')"><img src="https://img.icons8.com/?size=100&id=68064&format=png&color=000000" width="20" height="20"></button>
         </div>
 
         {% endfor %}
@@ -212,6 +228,7 @@ function home(){
             switch(data['event']){
                 case 1: get_list_chat();break;
                 case 2: document.getElementById("whoisthis").innerHTML=data['username'];document.getElementById("friend_avatar").src=data['photo_profile'];break;
+                case 3: get_chat(current_channel);break;
                 default: break;
             }
         });
@@ -221,12 +238,31 @@ function home(){
         Pusher.logToConsole=true;
         const channel=pusher.subscribe(current_channel);
         channel.bind("send",function(data){
-        if (data["event"] == "{{ event }}"){
-            document.getElementById("woy").innerHTML += "<div class='message right'>" + data["message"] + "<span class='timestamp'>"+data["time"]+"</span></div>";
+        const message = data['message'].replace(/\n/g, "<br>");
+
+        if (data["event"] === "{{ event }}") {
+            document.getElementById("woy").innerHTML += `
+                <div class='message right'>
+                <img width='50' height='50' src='${data["photo_profile"]}' style='float:right; border-radius:10px'>
+                <b id='user${data['id']}'>@${data["username"]}</b><br>
+                <p id='${data['id']}'>
+                ${message}
+                </p>
+                <span class='timestamp'>${data["time"]}</span><br>
+                <button type='button' onclick='delete_message(${data["id"]})' class='logout-button'>hapus</button><br>
+                </div>
+                `;
+        } else {
+            document.getElementById("woy").innerHTML += `
+            <div class='message left'>
+            <img width='50' height='50' src='${data["photo_profile"]}' style='float:left; border-radius:10px'>
+            <b id='user${data['id']}'>@${data["username"]}</b><br>
+            <p id='${data["id"]}'>${message}</p>
+            <span class='timestamp'>${data["time"]}</span><br>
+            </div>
+            `;
         }
-        else{
-            document.getElementById("woy").innerHTML += "<div class='message left'>" + data["message"] + "<span class='timestamp'>"+data["time"]+"</span></div>";
-        }
+
         var element = document.getElementById("chat-body");
         element.scrollTop = element.scrollHeight;
 
